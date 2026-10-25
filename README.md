@@ -1,13 +1,41 @@
 # Mindful Metrics: Mental Health Score Prediction
 
-A FastAPI + vanilla HTML/CSS/JS app around your existing `Model.pkl`.
+A machine learning web application that predicts mental health scores using a trained Random Forest regression pipeline, FastAPI, and vanilla HTML, CSS, and JavaScript.
 
-## Project layout
+## Live Demo
 
-```
+- **Frontend Application:** [Launch Mindful Metrics](https://stress-level-analyzer-system-frontend.onrender.com/)
+- **Backend API:** [Open FastAPI Backend](https://stress-level-analyzer-system.onrender.com)
+- **API Documentation:** [Explore API Docs](https://stress-level-analyzer-system.onrender.com/docs)
+- **Health Check:** [Check Backend Status](https://stress-level-analyzer-system.onrender.com/api/health)
+
+Complete the assessment form in the frontend to receive a prediction from the deployed machine learning model.
+
+> **Note:** The application is for educational purposes only. Its predictions are not a medical diagnosis or a substitute for professional medical advice.
+
+## Features
+
+- Predicts a continuous mental health score using a trained machine learning model.
+- FastAPI backend for prediction requests.
+- Responsive frontend built with vanilla HTML, CSS, and JavaScript.
+- Input validation and error handling.
+- Preprocessing handled by the existing scikit-learn pipeline.
+- Deployed frontend and backend on Render.
+
+## Technology Stack
+
+- **Frontend:** HTML5, CSS3, Vanilla JavaScript
+- **Backend:** Python, FastAPI, Uvicorn
+- **Machine Learning:** scikit-learn, Random Forest Regressor
+- **Model Artifact:** `Model.pkl`
+- **Deployment:** Render
+
+## Project Structure
+
+```text
 mental-health-app/
 ├── main.py
-├── Model.pkl            <- your existing model (copy it here, unchanged)
+├── Model.pkl
 ├── requirements.txt
 ├── README.md
 └── frontend/
@@ -16,77 +44,133 @@ mental-health-app/
     └── script.js
 ```
 
-## About the model (inspected from your Model.pkl)
+The exact structure may vary slightly depending on the deployment configuration. Keep `Model.pkl` in the location expected by `main.py`.
 
-- A scikit-learn `Pipeline`: `ColumnTransformer` preprocessor + `RandomForestRegressor` (150 trees).
-- **Regression**: it outputs one continuous number.
-- The pipeline already does all preprocessing (log1p + scaling, ordinal Stress_Level, one-hot encoding), so `main.py` passes raw values and never preprocesses twice.
-- It was saved with scikit-learn **1.7.2**, so `requirements.txt` pins that version.
-- 12 columns go in: the 11 form answers, plus `Grouped_Countries`, which `main.py` derives from Country (top 9 countries kept, everything else becomes `Other`).
-- `Mental_Health_Score` is the target, so it is not an input.
-- The pickle does not store the score's scale or any accuracy metric, so the app shows only the raw model output.
+## How It Works
 
-## Run on Windows PowerShell
+1. The user completes the assessment form in the frontend.
+2. The frontend sends the submitted values to the FastAPI prediction endpoint.
+3. The backend validates the input and passes the raw feature values to the trained scikit-learn pipeline.
+4. The pipeline performs its configured preprocessing and generates a regression prediction.
+5. The frontend displays the returned predicted score.
 
-Use Python 3.10 or newer. From the project folder:
+The model predicts a continuous numerical value. The score's scale and clinical interpretation should not be assumed unless supported by the dataset documentation.
+
+## API Endpoints
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| `GET` | `/api/health` | Checks backend and model status |
+| `POST` | `/api/predict` | Returns a predicted mental health score and country group |
+
+Interactive API documentation is available at [`/docs`](https://stress-level-analyzer-system.onrender.com/docs).
+
+Invalid requests may return HTTP `422` with validation details. The application also validates that study, physical activity, and sleep hours do not exceed 24 hours in total.
+
+## Run Locally on Windows
+
+### 1. Requirements
+
+- Python 3.10 or newer
+- The project files, including `Model.pkl`
+
+### 2. Open the project folder
+
+In PowerShell, navigate to the directory containing `main.py`:
 
 ```powershell
 cd path\to\mental-health-app
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-uvicorn main:app --reload
 ```
 
-If activation is blocked, run this once, then activate again:
+### 3. Create and activate a virtual environment
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+If PowerShell blocks environment activation, run this command in PowerShell and then activate the environment again:
 
 ```powershell
 Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 ```
 
-Open <http://127.0.0.1:8000> in your browser. Interactive API docs: <http://127.0.0.1:8000/docs>.
+### 4. Install dependencies
 
-## Test the health endpoint
+```powershell
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
 
-In a second PowerShell window:
+The model was saved with scikit-learn `1.7.2`. Use the version specified in `requirements.txt` to help maintain compatibility with the saved model.
+
+### 5. Start the backend
+
+```powershell
+uvicorn main:app --reload
+```
+
+Open the application at:
+
+- Frontend: [http://127.0.0.1:8000](http://127.0.0.1:8000)
+- API documentation: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+- Health check: [http://127.0.0.1:8000/api/health](http://127.0.0.1:8000/api/health)
+
+These local URLs assume that `main.py` is configured to serve the frontend from the root URL.
+
+## Test the Health Endpoint
+
+With the backend running, open a second PowerShell window and run:
 
 ```powershell
 Invoke-RestMethod http://127.0.0.1:8000/api/health
 ```
 
-Expected: `status: ok` and `model_loaded: True`.
+A healthy response should report `status: ok` and `model_loaded: True`.
 
-## Make a real prediction from PowerShell
+## Test a Prediction from PowerShell
+
+The following example sends sample inputs to the local prediction endpoint. Adjust the values to match the options supported by your application.
 
 ```powershell
 $body = @{
-  Age = 20; Gender = "Female"; Country = "India"
-  Academic_Level = "Undergraduate"; Most_Used_Platform = "Instagram"
-  Purpose_Of_Use = "Entertainment"; Avg_Daily_Usage_Hours = 5
-  Daily_Unlocks = 80; Study_Hours = 4; Physical_Activity_Hours = 1
-  Sleep_Hours_Per_Night = 7; Stress_Level = "Medium"
+    Age = 20
+    Gender = "Female"
+    Country = "India"
+    Academic_Level = "Undergraduate"
+    Most_Used_Platform = "Instagram"
+    Purpose_Of_Use = "Entertainment"
+    Avg_Daily_Usage_Hours = 5
+    Daily_Unlocks = 80
+    Study_Hours = 4
+    Physical_Activity_Hours = 1
+    Sleep_Hours_Per_Night = 7
+    Stress_Level = "Medium"
 } | ConvertTo-Json
 
-Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8000/api/predict `
-  -ContentType "application/json" -Body $body
+Invoke-RestMethod `
+    -Method Post `
+    -Uri http://127.0.0.1:8000/api/predict `
+    -ContentType "application/json" `
+    -Body $body
 ```
 
-Or fill in the form on the page and press **Predict score**.
-
-## API
-
-| Method | Path | Purpose |
-|---|---|---|
-| GET | `/api/health` | Server and model status |
-| POST | `/api/predict` | Returns `predicted_mental_health_score` and `country_group` |
-
-Invalid input returns HTTP 422 with field-level messages. Study + physical activity + sleep hours must total 24 or less.
+The response should contain the predicted score and country group, according to the backend's response schema.
 
 ## Troubleshooting
 
-- **`model_loaded: False`**: check that `Model.pkl` sits next to `main.py` and that scikit-learn is 1.7.2 (`pip show scikit-learn`).
-- **Port busy**: `uvicorn main:app --reload --port 8001`, then open that port.
-- **"Could not reach the server"**: uvicorn is not running, or you opened `index.html` from disk while the server is on a different port.
+- **`model_loaded: False`:** Confirm that `Model.pkl` is in the expected location and that the installed scikit-learn version matches the project's requirements.
+- **Port already in use:** Start the server on another port with `uvicorn main:app --reload --port 8001`. Ensure the frontend uses the matching backend URL if required.
+- **Frontend cannot reach the backend:** Confirm that the backend is running and that the frontend API base URL, CORS configuration, and port are correct.
+- **First request takes time on Render:** A free service may need time to wake up after inactivity. Retry once the service responds.
+- **HTTP 422 validation error:** Check the submitted field names, data types, allowed categorical values, and hour constraints.
 
-Educational use only; this is not medical advice.
+## Limitations
+
+- The application returns the model's numerical prediction; it does not establish a clinical diagnosis.
+- The model's performance metrics and score interpretation should only be reported when supported by reliable evaluation results and dataset documentation.
+- Predictions depend on the quality and scope of the data used to train the model.
+
+## Disclaimer
+
+**Mindful Metrics is an educational machine learning project. It is not a medical device and must not be used to diagnose, treat, or manage a mental health condition.** If you have concerns about your mental health, consult a qualified healthcare professional.
