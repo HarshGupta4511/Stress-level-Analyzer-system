@@ -3,7 +3,7 @@
 
   // When the page is served by FastAPI (port 8000) the page and API share an origin.
   // From anywhere else (Live Server on :5500, a file:// path) call the local FastAPI server.
-  const API_BASE = window.location.port === "8000" ? "" : "http://127.0.0.1:8000";
+  const API_BASE = window.location.port === "8000" ? "" : "https://stress-level-analyzer-system.onrender.com";
   const REQUEST_TIMEOUT_MS = 20000;
 
   // Mirrors the backend validation (main.py). The server remains the final authority.
